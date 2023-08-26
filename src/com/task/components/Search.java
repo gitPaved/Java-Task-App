@@ -1,39 +1,31 @@
 package com.task.components;
 
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Image;
+import java.awt.BorderLayout;
+import java.awt.Insets;
 
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.task.interfaces.SearchTasks;
+import com.task.test.ImagePanel;
 
 public class Search extends JPanel {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	JLabel characterLabel;
 	InputTextField inputText;
+	ImagePanel imageSearch;
 
 	public Search(SearchTasks searchTaks) {
-		inputText = new InputTextField(searchTaks, "Placeholder Text");
-		inputText.setColumns(20);
+		setLayout(new BorderLayout());		
 
-		ImageIcon searchImage = new ImageIcon(this.getClass().getResource("images/loupe.png"));
-		Image resizedImage = searchImage.getImage().getScaledInstance(25, 25, Image.SCALE_SMOOTH);
-		ImageIcon resizedImageIcon = new ImageIcon(resizedImage);
-		JLabel imageLabel = new JLabel(searchImage);
-		characterLabel = new JLabel("Caractères saisis : ");
+		inputText = new InputTextField(searchTaks, "Rechercher");
+		inputText.setMargin(new Insets(5, 5, 5, 5));
 
-		setLayout(new FlowLayout());
-		setBackground(Color.WHITE);
-		add(inputText);
-		add(imageLabel);
+//		imageSearch = new ImagePanel("images/search_icon.png");
+
+		add(inputText, BorderLayout.CENTER);
 		SwingUtilities.invokeLater(() -> {
 			requestFocusInWindow();
 		});
