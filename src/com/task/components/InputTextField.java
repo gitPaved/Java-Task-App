@@ -31,7 +31,7 @@ public class InputTextField extends JTextField {
 		this.searchTasks = searchTasks;
 
 		setForeground(Color.GRAY);
-		Font customFont = new Font("Courier New", Font.BOLD, 16);
+		Font customFont = new Font("Comic Sans MS", Font.BOLD, 16);
 		setFont(customFont);
 
 		updatePlaceholderDisplay();

@@ -16,7 +16,7 @@ public class CustomButton extends JButton {
 
 	public CustomButton(String text, int size) {
 		setText(text);
-		setFont(new Font("Courier New", Font.BOLD, size));
+		setFont(new Font("Comic Sans MS", Font.BOLD, size));
 		methods.addPaddingBtn(this, 5, 10, 5, 10);
 	}
 

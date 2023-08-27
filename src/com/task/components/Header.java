@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class Header extends JPanel {
@@ -14,13 +13,12 @@ public class Header extends JPanel {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	JLabel textTitle;
+	CustomLabel textTitle;
 
 	public Header(String titleHeader) {
 
-		this.textTitle = new JLabel(titleHeader);
-		textTitle.setFont(new Font("Courier New", Font.ITALIC + Font.BOLD, 30));
-		textTitle.setHorizontalAlignment(JLabel.CENTER);
+		this.textTitle = new CustomLabel(titleHeader, Font.ITALIC + Font.BOLD, 30);
+		textTitle.setHorizontalAlignment(CustomLabel.CENTER);
 
 		setLayout(new BorderLayout());
 		setBackground(Color.WHITE);
