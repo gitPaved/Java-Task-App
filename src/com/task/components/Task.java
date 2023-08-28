@@ -99,23 +99,34 @@ public class Task extends JFrame {
 
 	public void initMenu() {
 		search = new InputTextField(enteredText -> {
-			//search.requestFocusInWindow();
 			System.out.println("Entered Text: " + enteredText);
-			searchTextTask = search.isFocus && enteredText == "Rechercher ...." ? "" : enteredText;
+			searchTextTask = search.isFocus && enteredText == "" ? "" : enteredText;
 			SortOptionBean selectedOption = (SortOptionBean) comboBox.getSelectedItem();
 			if (selectedOption != null) {
 				sortField = selectedOption.getField();
 			}
 			searchedTasks(orderField, sortField, searchTextTask);
 
-		}, "Rechercher ....");
+		}, "");
 		
-		Header header = new Header("Gestionnaire");
+		
+		CustomLabel labelMenu = new CustomLabel("Gestionnaire", Font.BOLD,20);
+		CustomLabel labelSearch = new CustomLabel("Rechercher", Font.BOLD,15);
+		
+		JPanel panelHeader = new JPanel();
+		panelHeader.setLayout(new BoxLayout(panelHeader, BoxLayout.Y_AXIS));
+		
+		
+		panelHeader.add(labelMenu);
+		panelHeader.add(Box.createVerticalStrut(10));
+		panelHeader.add(labelSearch);
+		panelHeader.add(search);
+		panelHeader.setBackground(Color.WHITE);
 		
 		
 		panelContentMenu.setLayout(new BoxLayout(panelContentMenu, BoxLayout.Y_AXIS));
 		panelContentMenu.setBackground(Color.WHITE);
-		methods.addPaddingPanel(panelContentMenu, 20, 0, 10, 0);
+		methods.addPaddingPanel(panelContentMenu, 25, 0, 10, 0);
 
 		setContentPanelMenu();
 
@@ -142,7 +153,7 @@ public class Task extends JFrame {
 
 		panelMenu.setLayout(new BorderLayout());
 		methods.addPaddingPanel(panelMenu, 20, 20, 20, 20);
-		panelMenu.add(header, BorderLayout.NORTH);
+		panelMenu.add(panelHeader, BorderLayout.NORTH);
 		panelMenu.add(panelContentMenu, BorderLayout.CENTER);
 		panelMenu.add(panelBtnAddTask, BorderLayout.SOUTH);
 		panelMenu.setBackground(Color.WHITE);
@@ -164,9 +175,9 @@ public class Task extends JFrame {
 				orderField = option.getLabel();
 				searchedTasks(orderField, sortField, searchTextTask);
 			}));
-			if (option.isDefaultOption()) {
-				selectedOption = menuOption;
-				setSelectedOption(selectedOption);
+			if (option.isDefaultOption()) {				
+					selectedOption = menuOption;
+					setSelectedOption(selectedOption);				
 			}
 			panelContentMenu.add(menuOption);
 			panelContentMenu.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -226,11 +237,8 @@ public class Task extends JFrame {
 		panelTasks.add(panelHeaderTask, BorderLayout.NORTH);
 		panelTasks.add(panelContentTaks, BorderLayout.CENTER);
 
-//		if (comboBox != null)
-//			comboBox.requestFocusInWindow();
-//		else
-//		btnAddTask.requestFocusInWindow();
-		verticalScrollBarPanelTasks.setValue(-10);
+		verticalScrollBarPanelTasks.setValue(0);
+		verticalScrollBarPanelTasks.revalidate();
 
 	}
 
@@ -274,14 +282,9 @@ public class Task extends JFrame {
 		panelContentTaks.setBackground(Color.white);
 		panelContentTaks.revalidate();
 		panelContentTaks.repaint();
-		
-		System.err.println("search.isFocus  --------------- : " + search.isFocus);
-//		if(!search.isFocus) {
-//			btnAddTask.requestFocusInWindow();
-//		}
-//		requestFocusInWindow();
-		
-		verticalScrollBarPanelTasks.setValue(-10);
+				
+		verticalScrollBarPanelTasks.setValue(0);
+		verticalScrollBarPanelTasks.revalidate();
 
 	}
 
@@ -334,7 +337,7 @@ public class Task extends JFrame {
 	}
 
 	public void selectedTasks(String orderFilter) {
-//		List<TaskBean> tasks = sqliteConnector.selectTasksCreated(connection, orderFilter);
+		//List<TaskBean> tasks = sqliteConnector.selectTasksCreated(connection, orderFilter);
 		List<TaskBean> tasks = sqliteConnector.searchTasks(connection, orderField, sortField, searchTextTask);
 		if (tasks != null) {
 			setContentPanelTasks(orderField, tasks);
