@@ -11,12 +11,9 @@ import javax.swing.event.DocumentListener;
 
 import com.task.interfaces.SearchTasks;
 
-
-
 /**
  * 
  * */
-
 
 public class InputTextField extends JTextField {
 	/**
@@ -25,6 +22,8 @@ public class InputTextField extends JTextField {
 	private static final long serialVersionUID = 1L;
 	String placeholder;
 	SearchTasks searchTasks;
+	boolean isFocus;
+	String focusText = null;
 
 	public InputTextField(SearchTasks searchTasks, String placeholder) {
 		this.placeholder = placeholder;
@@ -32,18 +31,20 @@ public class InputTextField extends JTextField {
 
 		setForeground(Color.GRAY);
 		Font customFont = new Font("Comic Sans MS", Font.BOLD, 16);
-		setFont(customFont);
+		setFont(customFont); 
 
 		updatePlaceholderDisplay();
 		addFocusListener(new PlaceholderFocusListener());
 		getDocument().addDocumentListener(new PlaceholderDocumentListener());
-		
+
 		setBackground(Color.WHITE);
 	}
 
 	private class PlaceholderFocusListener implements FocusListener {
 		@Override
 		public void focusGained(FocusEvent e) {
+			isFocus = true;
+			focusText = "@#----1~";
 			if (getText().equals(placeholder)) {
 				setText("");
 				setForeground(Color.BLACK);
@@ -52,8 +53,10 @@ public class InputTextField extends JTextField {
 
 		@Override
 		public void focusLost(FocusEvent e) {
+			isFocus = false;
+			focusText = null;
 			updatePlaceholderDisplay();
-		}
+		} 
 	}
 
 	private class PlaceholderDocumentListener implements DocumentListener {
@@ -84,5 +87,9 @@ public class InputTextField extends JTextField {
 			setText(placeholder);
 			setForeground(Color.GRAY);
 		}
+	}
+
+	public boolean getFocusTextField() {
+		return isFocus;
 	}
 }

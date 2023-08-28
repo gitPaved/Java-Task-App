@@ -9,6 +9,8 @@ public class TaskBean {
 	private String description;
 	private Date dueDate;
 	private Date reminder;
+	private Date createDate;
+	private Date updateDate;
 	private Boolean important;
 	private Boolean finish;
 
@@ -23,16 +25,36 @@ public class TaskBean {
 		this.important = important;
 		this.finish = finish;
 	}
-	
-	
+
+	public TaskBean(String title, String description, Date dueDate, Date reminder, Boolean important, Boolean finish) {
+		super();
+		this.title = title;
+		this.description = description;
+		this.dueDate = dueDate;
+		this.reminder = reminder;
+		this.important = important;
+		this.finish = finish;
+	}
+
+	public TaskBean(int id, String title, String description, Date dueDate, Date reminder, Date createDate,
+			Date updateDate, Boolean important, Boolean finish) {
+		super();
+		this.id = id;
+		this.title = title;
+		this.description = description;
+		this.dueDate = dueDate;
+		this.reminder = reminder;
+		this.createDate = createDate;
+		this.updateDate = updateDate;
+		this.important = important;
+		this.finish = finish;
+	}
 
 	public TaskBean(String title, String description) {
 		super();
 		this.title = title;
 		this.description = description;
 	}
-
-
 
 	public int getId() {
 		return id;
@@ -89,5 +111,23 @@ public class TaskBean {
 	public void setFinish(Boolean finish) {
 		this.finish = finish;
 	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+	
+	
 
 }

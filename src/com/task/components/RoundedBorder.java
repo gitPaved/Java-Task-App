@@ -21,7 +21,7 @@ public class RoundedBorder extends AbstractBorder {
 	public RoundedBorder(int cornerRadius, Color color, int margin) {
 		this.cornerRadius = cornerRadius;
 		this.color = color;
-		this.margin = margin;
+		this.margin = margin; 
 	}
 	
 	@Override

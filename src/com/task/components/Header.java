@@ -15,7 +15,7 @@ public class Header extends JPanel {
 	private static final long serialVersionUID = 1L;
 	CustomLabel textTitle;
 
-	public Header(String titleHeader) {
+	public Header(String titleHeader) { 
 
 		this.textTitle = new CustomLabel(titleHeader, Font.ITALIC + Font.BOLD, 30);
 		textTitle.setHorizontalAlignment(CustomLabel.CENTER);

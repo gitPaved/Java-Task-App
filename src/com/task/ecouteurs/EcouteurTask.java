@@ -5,20 +5,24 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import com.task.components.ItemTask;
-import com.task.interfaces.OnPressMenuOption;
+import com.task.interfaces.OnPressTask;
 
 public class EcouteurTask implements MouseListener {
 
-	OnPressMenuOption onPress;
+	OnPressTask onPress;
 
-	public EcouteurTask(OnPressMenuOption onPress) {
+	public EcouteurTask(OnPressTask onPress) {
 		this.onPress = onPress;
+	}
+	
+	public EcouteurTask() {
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (onPress != null) {
-			onPress.execute();
+			ItemTask task = (ItemTask) e.getSource();
+			onPress.execute(task.getTaskBean(),"");
 		}
 	}
 

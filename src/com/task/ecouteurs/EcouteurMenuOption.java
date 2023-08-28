@@ -13,14 +13,14 @@ public class EcouteurMenuOption implements MouseListener {
 //	private MenuOption selectedOption;
 
 	public EcouteurMenuOption(OnPressMenuOption onPress) {
-		this.onPress = onPress;
+		this.onPress = onPress; 
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (onPress != null) {
 //			selectedOption = (MenuOption) e.getSource();
-			onPress.execute();
+			onPress.execute(); 
 		}
 	}
 

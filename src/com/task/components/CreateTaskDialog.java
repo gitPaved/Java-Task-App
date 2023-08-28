@@ -1,28 +1,29 @@
 package com.task.components;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Properties;
+import java.sql.Connection;
+import java.util.Date;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 
-import org.jdatepicker.impl.JDatePanelImpl;
-import org.jdatepicker.impl.JDatePickerImpl;
-import org.jdatepicker.impl.UtilDateModel;
-
+import com.task.bean.TaskBean;
+import com.task.ecouteurs.EcouteurButton;
+import com.task.interfaces.SelectTasks;
 import com.task.methods.Methods;
+import com.task.sql.SQLiteConnector;
 
 public class CreateTaskDialog extends JDialog {
 
@@ -32,32 +33,43 @@ public class CreateTaskDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 
 	Methods methods = new Methods();
+	int id = 0;
+	String title = "", description = "";
+	Date dueDate = null, reminderDate = null;
+	boolean important = false, finished = false;
+	SQLiteConnector sqliteConnector = new SQLiteConnector();
+	Connection connection = sqliteConnector.getConnection();
+	SelectTasks selectTasks;
 
-	public CreateTaskDialog(Frame owner) {
+	public CreateTaskDialog(Frame owner, TaskBean task, SelectTasks selectTasks) {
 		super(owner, "Créer une Nouvelle Tâche", true);
+		this.selectTasks = selectTasks;
+
 		setSize(500, 650);
 		setBackground(Color.WHITE);
 
+		if (task != null) {
+			id = task.getId();
+			title = task.getTitle();
+			description = task.getDescription();
+			important = task.getImportant();
+			finished = task.getFinish();
+			dueDate = task.getDueDate();
+			reminderDate = task.getReminder();
+		}
+
 		JPanel panelPrincipal = new JPanel();
 		panelPrincipal.setLayout(new BoxLayout(panelPrincipal, BoxLayout.Y_AXIS));
-		
-		
-		UtilDateModel model = new UtilDateModel();
-		Properties properties = new Properties();
-		properties.put("text.today", "Today");
-		properties.put("text.month", "Month");
-		properties.put("text.year", "Year");
-		
-		
 
 		// Title
-		CustomLabel title = new CustomLabel("Titre", Font.PLAIN, 15);
+		CustomLabel titleLabel = new CustomLabel("Titre", Font.PLAIN, 15);
 		JPanel panelTitle = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		panelTitle.add(title);
+		panelTitle.add(titleLabel);
 		panelTitle.setBackground(Color.WHITE);
 
-		CustomJTextArea titleTextArea = new CustomJTextArea("", Font.PLAIN, 15, true, Color.WHITE,
-				BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+		CustomTextAreaJScrollPane titleTextArea = new CustomTextAreaJScrollPane(title, Font.PLAIN, 15, true,
+				Color.WHITE, null);
+		titleTextArea.setPreferredSize(new Dimension(this.getPreferredSize().width, 75));
 
 		JPanel panelTitleAndTextArea = new JPanel();
 		panelTitleAndTextArea.setLayout(new BoxLayout(panelTitleAndTextArea, BoxLayout.Y_AXIS));
@@ -67,13 +79,15 @@ public class CreateTaskDialog extends JDialog {
 		panelTitleAndTextArea.setBackground(Color.WHITE);
 
 		// Description
-		CustomLabel description = new CustomLabel("Description", Font.PLAIN, 15);
+		CustomLabel descriptionLabel = new CustomLabel("Description", Font.PLAIN, 15);
 		JPanel panelDescription = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		panelDescription.add(description);
+		panelDescription.add(descriptionLabel);
 		panelDescription.setBackground(Color.WHITE);
 
-		CustomJTextArea descriptionTextArea = new CustomJTextArea("", Font.PLAIN, 15, true, Color.WHITE,
-				BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+		CustomTextAreaJScrollPane descriptionTextArea = new CustomTextAreaJScrollPane(description, Font.PLAIN, 15, true,
+				Color.WHITE, null);
+		descriptionTextArea.setPreferredSize(new Dimension(this.getPreferredSize().width, 180));
+
 		JPanel panelDescriptionAndTextArea = new JPanel();
 		panelDescriptionAndTextArea.setLayout(new BoxLayout(panelDescriptionAndTextArea, BoxLayout.Y_AXIS));
 
@@ -82,127 +96,155 @@ public class CreateTaskDialog extends JDialog {
 		panelDescriptionAndTextArea.setBackground(Color.WHITE);
 
 		// Due date
-		CustomLabel dueDate = new CustomLabel("Date echeance", Font.PLAIN, 15);		
-		
+		CustomLabel dueDateLabel = new CustomLabel("Date echeance", Font.PLAIN, 15);
+		CustomDatePicker dueDatePanel = new CustomDatePicker(dueDate);
 
-		JDatePanelImpl datePanel = new JDatePanelImpl(model, properties);
-		JDatePickerImpl datePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());		
-		
-		
 		JPanel panelDueDate = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		panelDueDate.add(dueDate);
-		panelDueDate.add(datePicker);
+		panelDueDate.add(dueDateLabel);
+		panelDueDate.add(dueDatePanel);
 		panelDueDate.setBackground(Color.WHITE);
-		
-		
-		
-		
-		// Reminder date
-		CustomLabel reminderDate = new CustomLabel("Date de Rappel", Font.PLAIN, 15);
 
-		JDatePanelImpl reminderDatePanel = new JDatePanelImpl(model, properties);
-		JDatePickerImpl remiderDatePicker = new JDatePickerImpl(reminderDatePanel, new DateLabelFormatter());	
-		
-		
+		// Reminder date
+		CustomLabel reminderDateLabel = new CustomLabel("Date de Rappel", Font.PLAIN, 15);
+		CustomDatePicker reminderDatePanel = new CustomDatePicker(reminderDate);
+
 		JPanel panelReminderDate = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		panelReminderDate.add(reminderDate);
-		panelReminderDate.add(remiderDatePicker);
+		panelReminderDate.add(reminderDateLabel);
+		panelReminderDate.add(reminderDatePanel);
 		panelReminderDate.setBackground(Color.WHITE);
-				
 
 		// Important
-		CustomLabel important = new CustomLabel("Importante", Font.PLAIN, 15);
-		JPanel panelImportant = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		panelImportant.add(important);
+		CustomLabel importantLabel = new CustomLabel("Importante", Font.PLAIN, 15);
+		JCheckBox importantCheckBox = new JCheckBox("");
+		importantCheckBox.setSelected(important);
+		importantCheckBox.setBackground(Color.WHITE);
+		setFont(new Font("Comic Sans MS", Font.BOLD, 15));
+
+		JPanel panelImportant = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		panelImportant.add(importantLabel);
+		panelImportant.add(importantCheckBox);
 		panelImportant.setBackground(Color.WHITE);
 
-		ButtonGroup groupButtonImportant = new ButtonGroup();
-
-		JRadioButton yes = new JRadioButton("Oui");
-		yes.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		yes.setBackground(Color.WHITE);
-
-		JRadioButton no = new JRadioButton("Non");
-		no.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		no.setBackground(Color.WHITE);
-
-//		b1.addActionListener(new Ecout());
-//		b2.addActionListener(new Ecout());
-		groupButtonImportant.add(yes);
-		groupButtonImportant.add(no);
-
-		JPanel panelImportantButton = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-		panelImportantButton.add(yes);
-		panelImportantButton.add(no);
-		panelImportantButton.setBackground(Color.WHITE);
-
-		JPanel panelImportantAndButton = new JPanel();
-		panelImportantAndButton.setLayout(new BoxLayout(panelImportantAndButton, BoxLayout.Y_AXIS));
-
-		panelImportantAndButton.add(panelImportant);
-		panelImportantAndButton.add(panelImportantButton);
-		panelImportantAndButton.setBackground(Color.WHITE);
-		
-		
-
 		// Finished
-		CustomLabel finished = new CustomLabel("Terminee", Font.PLAIN, 15);
-		JPanel panelFinished = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		panelFinished.add(finished);
+		CustomLabel finishedLabel = new CustomLabel("Terminée", Font.PLAIN, 15);
+		JCheckBox finishCheckBox = new JCheckBox("");
+		finishCheckBox.setSelected(finished);
+		finishCheckBox.setBackground(Color.WHITE);
+
+		JPanel panelFinished = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		panelFinished.add(finishedLabel);
+		panelFinished.add(finishCheckBox);
 		panelFinished.setBackground(Color.WHITE);
 
-		ButtonGroup groupButtonFinished = new ButtonGroup();
+		JPanel panelImportantAndFinish = new JPanel();
+		panelImportantAndFinish.setLayout(new BoxLayout(panelImportantAndFinish, BoxLayout.X_AXIS));
+		panelImportantAndFinish.add(panelImportant, BorderLayout.WEST);
+		panelImportantAndFinish.add(Box.createHorizontalGlue());
+		panelImportantAndFinish.add(panelFinished, BorderLayout.EAST);
+		panelImportantAndFinish.setBackground(Color.WHITE);
 
-		JRadioButton yesFinished = new JRadioButton("Oui");
-		yesFinished.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		yesFinished.setBackground(Color.WHITE);
-
-		JRadioButton noFinished = new JRadioButton("Non");
-		noFinished.setFont(new Font("Comic Sans MS", Font.BOLD, 12));
-		noFinished.setBackground(Color.WHITE);
-
-//		b1.addActionListener(new Ecout());
-//		b2.addActionListener(new Ecout());
-		groupButtonFinished.add(yesFinished);
-		groupButtonFinished.add(noFinished);
-
-		JPanel panelFinishedButton = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-		panelFinishedButton.add(noFinished);
-		panelFinishedButton.add(yesFinished);
-		panelFinishedButton.setBackground(Color.WHITE);
-
-		JPanel panelFinishedAndButton = new JPanel();
-		panelFinishedAndButton.setLayout(new BoxLayout(panelFinishedAndButton, BoxLayout.Y_AXIS));
-
-		panelFinishedAndButton.add(panelFinished);
-		panelFinishedAndButton.add(panelFinishedButton);
-		panelFinishedAndButton.setBackground(Color.WHITE);
-
-		JButton createButton = new JButton("Créer");
+		// Button
+		CustomButton createButton = new CustomButton("Créer", 15);
+		createButton.addMouseListener(new EcouteurButton());
 		createButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				String taskName = nameField.getText();
+
+				if (titleTextArea.getText().trim().equals("")) {
+					errorField("Entrer un titre");
+					return;
+				}
+				System.out.println("titleTextArea is empty ------------ ");
+				onPressCreateUpdate(true, titleTextArea.getText().trim(), descriptionTextArea.getText().trim(),
+						dueDatePanel.getDate(), reminderDatePanel.getDate(), importantCheckBox.isSelected(),
+						finishCheckBox.isSelected());
+
+			}
+		});
+
+		CustomButton updateButton = new CustomButton("Modifier", 15);
+		updateButton.addMouseListener(new EcouteurButton());
+		updateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				if (titleTextArea.getText().trim().equals("")) {
+					errorField("Entrer un titre");
+					return;
+				}
+				System.out.println("titleTextArea is empty ------------  dueDatePanel "
+						+ dueDatePanel.dateLabelFormatter.isChanged);
+				Date dueDate = dueDatePanel.dateLabelFormatter.isChanged ? dueDatePanel.getDate() : task.getDueDate();
+				Date reminderDate = reminderDatePanel.dateLabelFormatter.isChanged ? reminderDatePanel.getDate()
+						: task.getReminder();
+
+				onPressCreateUpdate(false, titleTextArea.getText().trim(), descriptionTextArea.getText().trim(),
+						dueDate, reminderDate, importantCheckBox.isSelected(), finishCheckBox.isSelected());
+
+			}
+		});
+
+		CustomButton cancelButton = new CustomButton("Annuler", 15);
+		cancelButton.addMouseListener(new EcouteurButton());
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
 				dispose();
 			}
 		});
 
+		JPanel panelButtonDialog = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 0));
+		panelButtonDialog.add(cancelButton);
+		panelButtonDialog.add(createButton);
+		panelButtonDialog.add(updateButton);
+		panelButtonDialog.setBackground(Color.WHITE);
+		if (task != null) {
+			updateButton.setVisible(true);
+			createButton.setVisible(false);
+		} else {
+			updateButton.setVisible(false);
+			createButton.setVisible(true);
+		}
+
+		// Principal
+
 		panelPrincipal.add(panelTitleAndTextArea);
-		panelPrincipal.add(Box.createVerticalStrut(15));
+		panelPrincipal.add(Box.createVerticalStrut(10));
 		panelPrincipal.add(panelDescriptionAndTextArea);
-		panelPrincipal.add(Box.createVerticalStrut(15));
-		panelPrincipal.add(panelImportantAndButton);
-		panelPrincipal.add(Box.createVerticalStrut(15));
+		panelPrincipal.add(Box.createVerticalStrut(10));
 		panelPrincipal.add(panelDueDate);
-		panelPrincipal.add(Box.createVerticalStrut(15));
+		panelPrincipal.add(Box.createVerticalStrut(10));
 		panelPrincipal.add(panelReminderDate);
-		panelPrincipal.add(Box.createVerticalStrut(15));
-		panelPrincipal.add(panelFinishedAndButton);
-		panelPrincipal.add(createButton);
+		panelPrincipal.add(Box.createVerticalStrut(10));
+		panelPrincipal.add(panelImportantAndFinish);
+		panelPrincipal.add(Box.createVerticalStrut(10));
+		panelPrincipal.add(panelButtonDialog);
 		panelPrincipal.setBackground(Color.WHITE);
 		methods.addPaddingPanel(panelPrincipal, 10, 10, 10, 10);
 
 		add(new JScrollPane(panelPrincipal));
 		setLocationRelativeTo(owner);
+	}
+
+	public void onPressCreateUpdate(boolean create, String title, String description, Date dueDate, Date reminderDate,
+			boolean important, boolean finish) {
+
+		String res = "";
+		TaskBean task = new TaskBean(id, title, description, dueDate, reminderDate, important, finish);
+		if (create) {
+			res = sqliteConnector.insertTask(connection, task);
+		} else {
+			res = sqliteConnector.updateTask(connection, task);
+		}
+		if (res.equals("true")) {
+			selectTasks.execute();
+			dispose();
+		} else {
+			JOptionPane.showMessageDialog(null, res, "ERREUR !", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public void errorField(String text) {
+		JOptionPane.showMessageDialog(null, text, "ERREUR !", JOptionPane.ERROR_MESSAGE);
 	}
 }

@@ -17,6 +17,6 @@ public class CustomLabel extends JLabel {
 	public CustomLabel(String text, int font, int size) {
 		setText(text);
 		setFont(new Font("Comic Sans MS", font, size)); //Helvetica Courier New Calibri Times New Roman Georgia Comic Sans MS
-	}
+	} 
 
 }

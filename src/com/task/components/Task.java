@@ -7,12 +7,14 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -23,10 +25,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
+import com.task.bean.OptionBean;
+import com.task.bean.SortOptionBean;
 import com.task.bean.TaskBean;
 import com.task.ecouteurs.EcouteurMenuOption;
-import com.task.ecouteurs.EcouteurTask;
 import com.task.methods.Methods;
+import com.task.sql.SQLiteConnector;
 
 public class Task extends JFrame {
 
@@ -34,16 +38,19 @@ public class Task extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	JPanel panelPrincipal, panelMenu, panelTasks, panelSearch;
-	Search search;
-	JButton btnAddTask;
+	JPanel panelPrincipal, panelMenu, panelTasks, panelSearch, panelContentMenu, panelContentTaks;
+	InputTextField search;
 	CustomLabel titleTask;
 	JScrollPane panelTasksScroll;
 	Methods methods = new Methods();
-	String[] options = { "Titre", "Date de creation", "Date de modification" };
-	List<TaskBean> defaultTask = new ArrayList<>();
-	String sortTitle = "all";
+	String orderField = "Taches", sortField = "title", searchTextTask = "";
 	MenuOption selectedOption;
+	SQLiteConnector sqliteConnector = new SQLiteConnector();
+	Connection connection = sqliteConnector.getConnection();
+	JComboBox<SortOptionBean> comboBox;
+	SortOptionBean targetSortOption;
+	CustomButton btnAddTask, btnReset;
+	JScrollBar verticalScrollBarPanelTasks;
 
 	public Task() {
 
@@ -51,21 +58,29 @@ public class Task extends JFrame {
 		panelPrincipal = new JPanel();
 		panelMenu = new JPanel();
 		panelTasks = new JPanel();
+		panelContentMenu = new JPanel();
+		panelContentTaks = new JPanel();
 		panelTasksScroll = new JScrollPane(panelTasks);
+		verticalScrollBarPanelTasks = panelTasksScroll.getVerticalScrollBar();
 
-		for (int i = 1; i <= 20; i++) {
-			String title = "#" + i + " Create a website ";
-			String description = "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum "
-					+ i;
-			TaskBean task = new TaskBean(title, description);
-			defaultTask.add(task);
-		}
+		//
+		titleTask = new CustomLabel(orderField, Font.BOLD, 24);
+		btnAddTask = new CustomButton("Ajouter une tache", 14);
+		btnReset = new CustomButton("Réinitialiser", 14);
 
 		setSize(1000, 600);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setTitle("Task");
 		setContentPane(panelPrincipal);
+		addWindowListener(new WindowAdapter() {
+
+			public void windowClosing(WindowEvent e) {
+				quit();
+			}
+
+		});
+
 		init();
 		initMenu();
 		initListTask();
@@ -76,145 +91,128 @@ public class Task extends JFrame {
 				panelTasksScroll);
 		splitPanelPrincipal.setDividerLocation(350);
 
-		Header header = new Header("GESTIONNAIRE DE TACHES");
+		//Header header = new Header("GESTIONNAIRE DE TACHES");
 		panelPrincipal.setLayout(new BorderLayout());
-		panelPrincipal.add(header, BorderLayout.NORTH);
+		//panelPrincipal.add(header, BorderLayout.NORTH);
 		panelPrincipal.add(splitPanelPrincipal, BorderLayout.CENTER);
 	}
 
 	public void initMenu() {
-		search = new Search(enteredText -> {
+		search = new InputTextField(enteredText -> {
+			//search.requestFocusInWindow();
 			System.out.println("Entered Text: " + enteredText);
-			setContentPanelTasks("Taches", searchTasksByDescription(defaultTask, enteredText));
+			searchTextTask = search.isFocus && enteredText == "Rechercher ...." ? "" : enteredText;
+			SortOptionBean selectedOption = (SortOptionBean) comboBox.getSelectedItem();
+			if (selectedOption != null) {
+				sortField = selectedOption.getField();
+			}
+			searchedTasks(orderField, sortField, searchTextTask);
 
-		});
-		search.requestFocusInWindow();
-
-		JPanel panelContentMenu = new JPanel();
+		}, "Rechercher ....");
+		
+		Header header = new Header("Gestionnaire");
+		
+		
 		panelContentMenu.setLayout(new BoxLayout(panelContentMenu, BoxLayout.Y_AXIS));
-		methods.addPaddingPanel(panelContentMenu, 20, 0, 20, 0);
 		panelContentMenu.setBackground(Color.WHITE);
+		methods.addPaddingPanel(panelContentMenu, 20, 0, 10, 0);
 
-		MenuOption option1 = new MenuOption("Importantes", 15);
-		MenuOption option2 = new MenuOption("Terminées", 14);
-		MenuOption option3 = new MenuOption("Planifiéess", 14);
-		MenuOption option4 = new MenuOption("Taches", 14);
+		setContentPanelMenu();
 
-		option1.addMouseListener(new EcouteurMenuOption(() -> {
-			List<TaskBean> taskList = new ArrayList<>();
-			for (int i = 1; i <= 20; i++) {
-				String title = "#" + i + " Create une template ";
-				String description = "Lorem Ipsum has been the industry's standard dummy  make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum "
-						+ i;
-				TaskBean task = new TaskBean(title, description);
-				taskList.add(task);
-			}
-			setContentPanelTasks("Importantes", taskList);
-			setSelectedOption(option1);
-		}));
-		option2.addMouseListener(new EcouteurMenuOption(() -> {
-			List<TaskBean> taskList = new ArrayList<>();
-			for (int i = 1; i <= 20; i++) {
-				String title = "#" + i + " Faire la lessive ";
-				String description = "Lorem Ipsum has been the industry's standard dummy  et PageMaker including versions of Lorem Ipsum "
-						+ i;
-				TaskBean task = new TaskBean(title, description);
-				taskList.add(task);
-			}
-			setContentPanelTasks("Terminées", taskList);
-			setSelectedOption(option2);
-		}));
-		option3.addMouseListener(new EcouteurMenuOption(() -> {
-			List<TaskBean> taskList = new ArrayList<>();
-			for (int i = 1; i <= 20; i++) {
-				String title = "#" + i + " Faire ces devoirs ";
-				String description = "Lorem Ipsum has been the industry's standard dummy  et PageMaker including versions of Lorem Ipsum "
-						+ i;
-				TaskBean task = new TaskBean(title, description);
-				taskList.add(task);
-			}
-			setContentPanelTasks("Planifiéess", taskList);
-			setSelectedOption(option3);
-		}));
-		option4.addMouseListener(new EcouteurMenuOption(() -> {
-			List<TaskBean> taskList = new ArrayList<>();
-			setContentPanelTasks("Taches", taskList);
-		}));
-
-		panelContentMenu.add(option1);
-		panelContentMenu.add(Box.createRigidArea(new Dimension(0, 20)));
-		panelContentMenu.add(option2);
-		panelContentMenu.add(Box.createRigidArea(new Dimension(0, 22)));
-		panelContentMenu.add(option3);
-		panelContentMenu.add(Box.createRigidArea(new Dimension(0, 20)));
-		panelContentMenu.add(option4);
-		panelContentMenu.add(Box.createRigidArea(new Dimension(0, 10)));
-
-		CustomButton btnAddTask = new CustomButton("Ajouter une tache", 14);		
 		btnAddTask.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openCreateTaskDialog();
-            }
-        });
-		CustomButton btnQuitTask = new CustomButton("Fermer", 14);
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnAddTask.requestFocusInWindow();
+				openCreateTaskDialog(null);
+			}
+		});
+
+		btnReset.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnReset.requestFocusInWindow();
+				reset();
+			}
+		});
 
 		JPanel panelBtnAddTask = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
 		panelBtnAddTask.setBackground(Color.WHITE);
 		panelBtnAddTask.add(btnAddTask);
-//		panelBtnAddTask.add(btnQuitTask);
+		panelBtnAddTask.add(btnReset);
 
 		panelMenu.setLayout(new BorderLayout());
 		methods.addPaddingPanel(panelMenu, 20, 20, 20, 20);
-		panelMenu.add(search, BorderLayout.NORTH);
+		panelMenu.add(header, BorderLayout.NORTH);
 		panelMenu.add(panelContentMenu, BorderLayout.CENTER);
 		panelMenu.add(panelBtnAddTask, BorderLayout.SOUTH);
 		panelMenu.setBackground(Color.WHITE);
 
 	}
 
+	public void setContentPanelMenu() {
+
+		panelContentMenu.removeAll();
+
+		List<OptionBean> optionsBean = getOptionsBean();
+
+		for (OptionBean option : optionsBean) {
+			List<TaskBean> tasks = option.getTasks();
+			MenuOption menuOption = new MenuOption(option.getLabel(),
+					tasks != null ? Integer.toString(tasks.size()) : "");
+			menuOption.addMouseListener(new EcouteurMenuOption(() -> {
+				setSelectedOption(menuOption);
+				orderField = option.getLabel();
+				searchedTasks(orderField, sortField, searchTextTask);
+			}));
+			if (option.isDefaultOption()) {
+				selectedOption = menuOption;
+				setSelectedOption(selectedOption);
+			}
+			panelContentMenu.add(menuOption);
+			panelContentMenu.add(Box.createRigidArea(new Dimension(0, 20)));
+		}
+
+		panelContentMenu.revalidate();
+		panelContentMenu.repaint();
+
+	}
+
+	public void setSelectedOption(MenuOption option) {
+		if (selectedOption != null) {
+			selectedOption.setBackground(Color.WHITE);
+		}
+		selectedOption = option;
+		if (selectedOption != null) {
+			selectedOption.setBackground(new Color(200, 200, 200));
+		}
+	}
+
 	public void initListTask() {
 		panelTasks.setBackground(Color.WHITE);
 		panelTasks.setLayout(new BorderLayout());
 		methods.addPaddingPanel(panelTasks, 20, 20, 20, 20);
-
-		List<TaskBean> taskList = new ArrayList<>();
-		for (int i = 1; i <= 20; i++) {
-			String title = "#" + i + " Create a website ";
-			String description = "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum "
-					+ i;
-			TaskBean task = new TaskBean(title, description);
-			taskList.add(task);
-		}
-
-		setContentPanelTasks("Taches", taskList);
-
-	}
-	
-	
-	public void setSelectedOption(MenuOption option) {
-        if (selectedOption != null) {
-            selectedOption.setBackground(Color.WHITE);
-        }
-        selectedOption = option;
-        if (selectedOption != null) {
-            selectedOption.setBackground(new Color(200, 200, 200));
-        }
-    }
-	
-	
-
-	public void setContentPanelTasks(String title, List<TaskBean> tasks) {
-
-		panelTasks.removeAll();
+		selectedTasks("modification_date");
 
 		JPanel panelHeaderTask = new JPanel(new BorderLayout());
 		panelHeaderTask.setBackground(Color.WHITE);
-		CustomLabel titleTask = new CustomLabel(title, Font.BOLD, 24);
 		panelHeaderTask.add(titleTask, BorderLayout.WEST);
 
-		JComboBox<String> comboBox = new JComboBox<>(options);
+		List<SortOptionBean> sortOptions = getSortOptions();
+		int index = sortOptions.indexOf(targetSortOption);
+
+		comboBox = new JComboBox<>(sortOptions.toArray(new SortOptionBean[index]));
 		comboBox.setBackground(Color.white);
+		comboBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnAddTask.requestFocusInWindow();
+				SortOptionBean selectedSortOption = (SortOptionBean) comboBox.getSelectedItem();
+				targetSortOption = selectedSortOption;
+				sortField = selectedSortOption.getField();
+				// System.err.println("orderField ---- " + orderField);
+				searchedTasks(orderField, sortField, searchTextTask);
+			}
+		});
 
 		JPanel panelSort = new JPanel(new FlowLayout(0, 15, 0));
 		JLabel sortLable = new JLabel("Trie par");
@@ -225,74 +223,176 @@ public class Task extends JFrame {
 		panelHeaderTask.add(panelSort, BorderLayout.EAST);
 		methods.addPaddingPanel(panelHeaderTask, 0, 0, 25, 0);
 
-		JPanel panelContentTaks = new JPanel();
-		panelContentTaks.setLayout(new BoxLayout(panelContentTaks, BoxLayout.Y_AXIS));
-		panelContentTaks.setBackground(Color.white);
-
-		ItemTask[] itmemTasks = new ItemTask[tasks.size()];
-		for (int i = 0; i < itmemTasks.length; i++) {
-			itmemTasks[i] = new ItemTask(tasks.get(i));
-		}
-
-		int i = 0;
-		for (ItemTask item : itmemTasks) {
-			item.addMouseListener(new EcouteurTask(() -> {
-				quit();
-			}));
-
-			panelContentTaks.add(item);
-			if (i % 2 == 0) {
-				panelContentTaks.add(Box.createVerticalStrut(20));
-			} else {
-				panelContentTaks.add(Box.createVerticalStrut(25));
-			}
-			i++;
-
-		}
-		panelContentTaks.revalidate();
-		panelContentTaks.repaint();
-
 		panelTasks.add(panelHeaderTask, BorderLayout.NORTH);
 		panelTasks.add(panelContentTaks, BorderLayout.CENTER);
 
-		panelTasks.revalidate();
-		panelTasks.repaint();
-
-		scrollToTop(panelTasksScroll);
+//		if (comboBox != null)
+//			comboBox.requestFocusInWindow();
+//		else
+//		btnAddTask.requestFocusInWindow();
+		verticalScrollBarPanelTasks.setValue(-10);
 
 	}
 
-	public void scrollToTop(JScrollPane scrollPane) {
-		JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
-	    verticalScrollBar.setValue(0);
-	    scrollPane.revalidate();
-	    scrollPane.repaint();
-	}
+	public void setContentPanelTasks(String title, List<TaskBean> tasks) {
 
-	private void openCreateTaskDialog() {
-        CreateTaskDialog dialog = new CreateTaskDialog(this);
-        dialog.setVisible(true);
-    }
+		titleTask.setText(title);
 
+		panelContentTaks.removeAll();
 
-	public static List<TaskBean> searchTasksByDescription(List<TaskBean> taskList, String searchChar) {
-		List<TaskBean> matchingTasks = new ArrayList<>();
+		if (tasks.size() > 0) {
+			panelContentTaks.setLayout(new BoxLayout(panelContentTaks, BoxLayout.Y_AXIS));
+			ItemTask[] itmemTasks = new ItemTask[tasks.size()];
+			for (int i = 0; i < itmemTasks.length; i++) {
+				itmemTasks[i] = new ItemTask(tasks.get(i), ((task, action) -> {
+					if (action == "edit") {
+						openCreateTaskDialog(task);
+					} else {
+						deleteTask(task);
+					}
 
-		for (TaskBean task : taskList) {
-			if (task.getDescription().contains(searchChar)) {
-				matchingTasks.add(task);
+				}));
 			}
-		}
 
-		return matchingTasks;
+			int i = 0;
+			for (ItemTask item : itmemTasks) {
+				panelContentTaks.add(item);
+				if (i % 2 == 0) {
+					panelContentTaks.add(Box.createVerticalStrut(20));
+				} else {
+					panelContentTaks.add(Box.createVerticalStrut(25));
+				}
+				i++;
+
+			}
+		} else {
+			panelContentTaks.setLayout(new BorderLayout());
+			CustomLabel emptyLabel = new CustomLabel("Pas de taches trouvées", Font.BOLD, 20);
+			emptyLabel.setHorizontalAlignment(CustomLabel.CENTER);
+			panelContentTaks.add(emptyLabel, BorderLayout.CENTER);
+		}
+		panelContentTaks.setBackground(Color.white);
+		panelContentTaks.revalidate();
+		panelContentTaks.repaint();
+		
+		System.err.println("search.isFocus  --------------- : " + search.isFocus);
+//		if(!search.isFocus) {
+//			btnAddTask.requestFocusInWindow();
+//		}
+//		requestFocusInWindow();
+		
+		verticalScrollBarPanelTasks.setValue(-10);
+
+	}
+
+	private void openCreateTaskDialog(TaskBean task) {
+		CreateTaskDialog dialog = new CreateTaskDialog(this, task, (() -> {
+			if (task == null) {
+				selectedTasks("creation_date");
+			} else {
+				selectedTasks("modification_date");
+			}
+
+		}));
+		dialog.setVisible(true);
+	}
+
+	public List<OptionBean> getOptionsBean() {
+		List<OptionBean> list = new ArrayList<>();
+		List<TaskBean> tasksImportant = sqliteConnector.selectTasksImportant(connection, "modification_date");
+		List<TaskBean> tasksFinished = sqliteConnector.selectTasksFinished(connection, "modification_date");
+		List<TaskBean> tasksDueDate = sqliteConnector.selectTasksDueDate(connection, "modification_date");
+		List<TaskBean> tasks = sqliteConnector.selectTasksCreated(connection, "modification_date");
+
+		OptionBean important = new OptionBean("Importantes", tasksImportant);
+		OptionBean finish = new OptionBean("Terminées", tasksFinished);
+		OptionBean dueDate = new OptionBean("Planifiées", tasksDueDate);
+		OptionBean all = new OptionBean("Taches", tasks);
+		all.setDefaultOption(true);
+
+		list.add(important);
+		list.add(finish);
+		list.add(dueDate);
+		list.add(all);
+
+		return list;
+
+	}
+
+	public List<SortOptionBean> getSortOptions() {
+		List<SortOptionBean> list = new ArrayList<>();
+		SortOptionBean title = new SortOptionBean("Titre", "title");
+		SortOptionBean creationDate = new SortOptionBean("Date de creation", "creation_date");
+		SortOptionBean modificationDate = new SortOptionBean("Date de modification", "modification_date");
+
+		list.add(title);
+		list.add(creationDate);
+		list.add(modificationDate);
+		targetSortOption = title;
+		return list;
+
+	}
+
+	public void selectedTasks(String orderFilter) {
+//		List<TaskBean> tasks = sqliteConnector.selectTasksCreated(connection, orderFilter);
+		List<TaskBean> tasks = sqliteConnector.searchTasks(connection, orderField, sortField, searchTextTask);
+		if (tasks != null) {
+			setContentPanelTasks(orderField, tasks);
+			setContentPanelMenu();
+		} else {
+			JOptionPane.showMessageDialog(null, "Erreur lors de recuperation des donnees", "ERREUR !",
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	public void searchedTasks(String order, String sort, String textSearch) {
+		List<TaskBean> tasks = sqliteConnector.searchTasks(connection, order, sort, textSearch);
+		if (tasks != null) {
+			setContentPanelTasks(order, tasks);
+		} else {
+			JOptionPane.showMessageDialog(null, "Erreur lors de recuperation des donnees", "ERREUR !",
+					JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	public void quit() {
 
-		int n = JOptionPane.showConfirmDialog(this, "Voulez-vous quitter ?", "Quitter l 'application..",
+		int n = JOptionPane.showConfirmDialog(this, "Voulez-vous fermer l'application ?", "Fermer",
 				JOptionPane.YES_NO_OPTION);
 		if (n == JOptionPane.YES_OPTION)
 			System.exit(0);
+	}
+
+	public void reset() {
+
+		int n = JOptionPane.showConfirmDialog(this, "Voulez-vous réinitialiser vos taches ?", "Réinitialiser",
+				JOptionPane.YES_NO_OPTION);
+		if (n == JOptionPane.YES_OPTION) {
+			String rs = sqliteConnector.resetTableTasks(connection);
+			if (rs.equals("true")) {
+				connection = sqliteConnector.getConnection();
+				selectedTasks("creation_date");
+			} else {
+				JOptionPane.showMessageDialog(null, rs, "ERREUR !", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+
+	}
+
+	public void deleteTask(TaskBean task) {
+
+		int n = JOptionPane.showConfirmDialog(this, "Voulez-vous supprimez la tache ? \nTitre:" + task.getTitle(),
+				"Supprimer", JOptionPane.YES_NO_OPTION);
+		if (n == JOptionPane.YES_OPTION) {
+			String rs = sqliteConnector.deleteTask(connection, task.getId());
+			if (rs.equals("true")) {
+				searchedTasks(orderField, sortField, searchTextTask);
+				setContentPanelMenu();
+			} else {
+				JOptionPane.showMessageDialog(null, rs, "ERREUR !", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+
 	}
 
 	public static void main(String[] args) {

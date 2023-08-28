@@ -17,10 +17,10 @@ public class Search extends JPanel {
 	InputTextField inputText;
 	ImagePanel imageSearch;
 
-	public Search(SearchTasks searchTaks) {
+	public Search(SearchTasks searchTaks) { 
 		setLayout(new BorderLayout());		
 
-		inputText = new InputTextField(searchTaks, "Rechercher");
+		inputText = new InputTextField(searchTaks, "Rechercher ....");
 		inputText.setMargin(new Insets(5, 5, 5, 5));
 
 //		imageSearch = new ImagePanel("images/search_icon.png");
@@ -29,6 +29,10 @@ public class Search extends JPanel {
 		SwingUtilities.invokeLater(() -> {
 			requestFocusInWindow();
 		});
+	}
+	
+	public InputTextField getInputTextField() {
+		return this.inputText; 
 	}
 
 }
