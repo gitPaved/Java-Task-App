@@ -17,7 +17,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -64,11 +63,11 @@ public class Task extends JFrame {
 		verticalScrollBarPanelTasks = panelTasksScroll.getVerticalScrollBar();
 
 		//
-		titleTask = new CustomLabel(orderField, Font.BOLD, 24);
-		btnAddTask = new CustomButton("Ajouter une tache", 14);
-		btnReset = new CustomButton("Réinitialiser", 14);
+		titleTask = new CustomLabel(orderField, Font.BOLD, 26);
+		btnAddTask = new CustomButton("Ajouter une tache", 16);
+		btnReset = new CustomButton("Réinitialiser", 16);
 
-		setSize(1000, 600);
+		setSize(1250, 700);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setTitle("Task");
@@ -89,7 +88,7 @@ public class Task extends JFrame {
 	public void init() {
 		JSplitPane splitPanelPrincipal = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(panelMenu),
 				panelTasksScroll);
-		splitPanelPrincipal.setDividerLocation(350);
+		splitPanelPrincipal.setDividerLocation(380);
 
 		//Header header = new Header("GESTIONNAIRE DE TACHES");
 		panelPrincipal.setLayout(new BorderLayout());
@@ -110,8 +109,8 @@ public class Task extends JFrame {
 		}, "");
 		
 		
-		CustomLabel labelMenu = new CustomLabel("Gestionnaire", Font.BOLD,20);
-		CustomLabel labelSearch = new CustomLabel("Rechercher", Font.BOLD,15);
+		CustomLabel labelMenu = new CustomLabel("Gestionnaire", Font.BOLD,22);
+		CustomLabel labelSearch = new CustomLabel("Rechercher", Font.BOLD,17);
 		
 		JPanel panelHeader = new JPanel();
 		panelHeader.setLayout(new BoxLayout(panelHeader, BoxLayout.Y_AXIS));
@@ -226,7 +225,8 @@ public class Task extends JFrame {
 		});
 
 		JPanel panelSort = new JPanel(new FlowLayout(0, 15, 0));
-		JLabel sortLable = new JLabel("Trie par");
+		CustomLabel sortLable = new CustomLabel("Trie par",Font.BOLD,16);
+		comboBox.setFont(new Font("Comic Sans MS",Font.PLAIN,16));
 		panelSort.add(sortLable);
 		panelSort.add(comboBox);
 		panelSort.setBackground(Color.white);

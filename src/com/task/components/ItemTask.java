@@ -36,13 +36,13 @@ public class ItemTask extends JPanel {
 
 		methods.addRounderAndPaddingPanel(this, 10, Color.lightGray, 10, 10, 10, 10);
 
-		CustomJTextArea title = new CustomJTextArea(task.getTitle(), Font.BOLD, 22, false, null, null);
+		CustomJTextArea title = new CustomJTextArea(task.getTitle(), Font.BOLD, 24, false, null, null);
 		JPanel panelTitle = new JPanel(new BorderLayout());
 		panelTitle.add(title);
 		panelTitle.setBackground(Color.WHITE);
 		methods.addPaddingPanel(panelTitle, 0, 10, 0, 10);
 
-		CustomJTextArea description = new CustomJTextArea(task.getDescription(), Font.PLAIN, 15, false, null, null);
+		CustomJTextArea description = new CustomJTextArea(task.getDescription(), Font.PLAIN, 17, false, null, null);
 		JPanel panelDescription = new JPanel(new BorderLayout());
 		panelDescription.add(description, BorderLayout.CENTER); 
 		panelDescription.setBackground(Color.WHITE);
@@ -53,22 +53,22 @@ public class ItemTask extends JPanel {
 
 		if (task.getDueDate() != null) {
 			CustomLabel dueDate = new CustomLabel(
-					"Planifiée: " + methods.convertDateToString(task.getDueDate(), datePattern), Font.BOLD, 12);
+					"Planifiée: " + methods.convertDateToString(task.getDueDate(), datePattern), Font.BOLD, 14);
 			dueDate.setForeground(Color.blue);
 			footerLeft.add(dueDate);
 		}
 		if (task.getReminder() != null) {
 			CustomLabel reminder = new CustomLabel(
-					"Rappel: " + methods.convertDateToString(task.getReminder(), datePattern), Font.BOLD, 12);
+					"Rappel: " + methods.convertDateToString(task.getReminder(), datePattern), Font.BOLD, 14);
 			reminder.setForeground(Color.GREEN);
 			footerLeft.add(reminder);
 		}
 
 		JPanel footerRight = new JPanel(new FlowLayout(0, 10, 5));
 		footerRight.setBackground(Color.WHITE);
-		CustomLabel important = new CustomLabel("Importante", Font.BOLD, 12);
+		CustomLabel important = new CustomLabel("Importante", Font.BOLD, 14);
 		important.setForeground(Color.blue);
-		CustomLabel finish = new CustomLabel("Terminée", Font.BOLD, 12);
+		CustomLabel finish = new CustomLabel("Terminée", Font.BOLD, 14);
 		if (task.getImportant()) {
 			footerRight.add(important);
 		}
@@ -84,13 +84,13 @@ public class ItemTask extends JPanel {
 		
 		if (task.getCreateDate() != null) {
 			CustomLabel createDate = new CustomLabel(
-					"Créée: " + methods.convertDateToString(task.getCreateDate(), dateTimePattern), Font.BOLD, 12);
+					"Créée: " + methods.convertDateToString(task.getCreateDate(), dateTimePattern), Font.BOLD, 14);
 //			createDate.setForeground(Color.blue);
 			createUpdatePanel.add(createDate, BorderLayout.WEST);
 		}
 		if (task.getUpdateDate() != null) {
 			CustomLabel updateDate = new CustomLabel(
-					"Modifiée: " + methods.convertDateToString(task.getUpdateDate(), dateTimePattern), Font.BOLD, 12);
+					"Modifiée: " + methods.convertDateToString(task.getUpdateDate(), dateTimePattern), Font.BOLD, 14);
 //			createDate.setForeground(Color.blue);
 			createUpdatePanel.add(updateDate, BorderLayout.EAST);
 		}
